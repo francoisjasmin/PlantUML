@@ -107,8 +107,14 @@ function drawComp(L){
  const groupRight=Math.max(720,...groups.map(g=>g.x+g.w));
  const depth=g=>g.parent?depth(g.parent)+1:0;
  const groupBoxes=groups.map(g=>`<div class="pkg" style="left:${g.x}px;top:${g.y}px;width:${groupRight-g.x-depth(g)*10}px;height:${g.h}px">${html(g.k)} : ${display(g.t)}</div>`).join('');
+ // Clip connections to the box edges so their arrowheads remain visible.
+ function edge(a,b){
+  const dx=b.x-a.x,dy=b.y+b.h/2-a.y-a.h/2;
+  const scale=1/Math.max(Math.abs(dx)/85,Math.abs(dy)/(a.h/2));
+  return {x:a.x+85+(dx?dx*scale:0),y:a.y+a.h/2+(dy?dy*scale:0)};
+ }
  const lines=relations.map(r=>{
-  const a=r.a,b=r.b,x1=a.x+85,y1=a.y+a.h/2,x2=b.x+85,y2=b.y+b.h/2;
+  const start=edge(r.a,r.b),end=edge(r.b,r.a),x1=start.x,y1=start.y,x2=end.x,y2=end.y;
   return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#4b5563" stroke-width="2" ${r.arrow.includes('.')?'stroke-dasharray="5 5"':''} ${r.arrow.startsWith('<')?'marker-start="url(#arrowStart)"':''} ${r.arrow.endsWith('>')?'marker-end="url(#arrowEnd)"':''}/>${r.label?`<text x="${(x1+x2)/2}" y="${(y1+y2)/2-8}" text-anchor="middle">${html(r.label)}</text>`:''}`;
  }).join('');
  const boxes=nodes.map(n=>`<div class="box ${n.k==='interface'?'iface':n.k==='note'?'note':''}" style="left:${n.x}px;top:${n.y}px;width:170px;min-height:${n.h}px">${n.k==='database'?'DB: ':''}${display(n.t)}</div>`).join('');

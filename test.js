@@ -63,4 +63,17 @@ for(const body of ['note right of A\ntext','package "G" {\n[A]','}','note nonsen
 context.source='@startmindmap\n* Root\n** Child\n@endmindmap';
 vm.runInContext('code.value=source;validate()',context);assert.equal(elements.get('#status').textContent,'Syntaxe reconnue');
 assert.doesNotMatch(fs.readFileSync('index.html','utf8'),/Exemple MindMap|Exemple composants/);
+assert.doesNotMatch(fs.readFileSync('index.html','utf8'),/placeholder=/);
+for(const arrow of ['-->','<--','<-->','..>','<..','<..>','-right->','<-left-','--','..']){
+ const {errors}=parse(`[A] ${arrow} [B]`);
+ assert.equal(errors.length,0,arrow);
+ const line=elements.get('#preview').innerHTML.match(/<line\b[^>]*\/>/)[0];
+ assert.equal(line.includes('marker-start='),arrow.startsWith('<'),arrow);
+ assert.equal(line.includes('marker-end='),arrow.endsWith('>'),arrow);
+ assert.equal(line.includes('stroke-dasharray='),arrow.includes('.'),arrow);
+ // The tips must reach the facing edges, not the obscured box centers.
+ assert.match(line,/x1="210" y1="57" x2="260" y2="57"/,arrow);
+}
+parse('[A]\n[B]\n[C]\n[D]\n[A] --> [D]');
+assert.match(elements.get('#preview').innerHTML,/<line x1="125" y1="84" x2="125" y2="144"/);
 console.log('Component examples, aliases, implicit nodes, notes, nesting, invalid syntax and MindMap regression: OK');
