@@ -8,8 +8,16 @@ Aucune connexion Internet ni installation n'est requise.
 
 PORTÉE
 - MindMap : @startmindmap/@endmindmap, *, **, ***, +_, ++, +++, --, ---, left side/right side.
-- Composants : @startuml/@enduml, [composant], component, package/frame/cloud/node/folder,
-  interface, database, relations/flèches, notes, skinparam.
+- Composants : @startuml/@enduml, [composant], component, alias avec as,
+  interface et (), éléments implicites dans les relations, liens et flèches avec libellés.
+- Regroupements imbriqués : package, node, folder, frame, cloud, database, rectangle.
+- Notes : left/right/top/bottom of, texte sur une ligne ou bloc end note,
+  notes autonomes avec alias et liens pointillés. Paramètres skinparam.
+- L’aperçu affiche les groupes, notes et liens dans une disposition simplifiée ;
+  le placement exact des notes et des flèches n’est pas celui du moteur PlantUML.
+
+VÉRIFICATION (développement, Node.js uniquement)
+Exécuter : node test.js
 
 IMPORTANT
 Ce n'est pas le moteur officiel PlantUML. Le programme vérifie la syntaxe ciblée
