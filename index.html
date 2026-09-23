@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Validateur PlantUML</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div><h1>Validateur PlantUML</h1><p>MindMap et diagramme de composants — hors ligne</p></div><b>Hors ligne</b></header>
+<main>
+<section>
+<div class="bar"><h2>Code PlantUML</h2><div><button id="mind">Exemple MindMap</button><button id="comp">Exemple composants</button><button id="clear">Effacer</button><button class="primary" id="validate">Valider</button></div></div>
+<div class="editor"><pre id="nums">1</pre><textarea id="code" spellcheck="false" placeholder="@startuml&#10;...&#10;@enduml"></textarea></div>
+<small>Ctrl + Entrée : valider • Tab : indentation</small>
+</section>
+<section>
+<div class="bar"><h2>Validation</h2><span id="status">En attente</span></div>
+<div id="errors"><p>Écrivez votre diagramme puis cliquez sur <b>Valider</b>.</p></div>
+<h3>Aperçu local simplifié</h3><div id="preview"><p>L’aperçu apparaîtra ici si la syntaxe reconnue est valide.</p></div>
+</section>
+</main>
+<footer>Cet outil vérifie uniquement la syntaxe prise en charge. Il ne vérifie pas si le contenu constitue la bonne réponse.</footer>
+<script src="app.js"></script>
+</body></html>

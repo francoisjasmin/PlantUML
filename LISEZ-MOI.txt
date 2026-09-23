@@ -1,0 +1,18 @@
+VALIDATEUR PLANTUML HORS LIGNE
+
+1. Décompresser le ZIP.
+2. Ouvrir index.html dans Firefox, Chrome ou Edge.
+3. Écrire/coller le code, puis cliquer sur Valider (ou Ctrl+Entrée).
+
+Aucune connexion Internet ni installation n'est requise.
+
+PORTÉE
+- MindMap : @startmindmap/@endmindmap, *, **, ***, +_, ++, +++, --, ---, left side/right side.
+- Composants : @startuml/@enduml, [composant], component, package/frame/cloud/node/folder,
+  interface, database, relations/flèches, notes, skinparam.
+
+IMPORTANT
+Ce n'est pas le moteur officiel PlantUML. Le programme vérifie la syntaxe ciblée
+par l'examen et produit un aperçu local simplifié. Il ne juge pas la justesse
+de la réponse, la pertinence du contenu, le nombre attendu d'éléments ou les
+choix d'analyse/conception.
