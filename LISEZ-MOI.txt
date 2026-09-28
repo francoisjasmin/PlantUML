@@ -11,10 +11,19 @@ PORTÉE
 - Composants : @startuml/@enduml, [composant], component, alias avec as,
   interface et (), éléments implicites dans les relations, liens et flèches avec libellés.
 - Regroupements imbriqués : package, node, folder, frame, cloud, database, rectangle.
+- Entité-relation : entity "Nom" as Alias { ... }, attributs (ex. +Id : int [PK]),
+  clés [PK]/[FK], séparateurs --, .., == ou __, relations avec cardinalités
+  (ex. Cours "1" -- "0..*" TacheDevoir : contient >). La forme 0..\* est aussi acceptée.
+  Le titre et les couleurs BackgroundColor, BorderColor et FontColor d’un bloc
+  skinparam entity sont affichés dans l’aperçu. Couleurs : nom simple ou hexadécimal.
 - Notes : left/right/top/bottom of, texte sur une ligne ou bloc end note,
   notes autonomes avec alias et liens pointillés. Paramètres skinparam.
 - L’aperçu affiche les groupes, notes et liens dans une disposition simplifiée ;
   le placement exact des notes et des flèches n’est pas celui du moteur PlantUML.
+  L’aperçu ER présente les entités avec leurs attributs et cardinalités, et place
+  les notes du côté demandé. Les entités sont disposées verticalement ; les
+  regroupements ne sont pas représentés dans cet aperçu ER. Les autres options
+  skinparam ne sont pas appliquées. La notation patte d’oie n’est pas prise en charge.
 
 VÉRIFICATION (développement, Node.js uniquement)
 Exécuter : node test.js
