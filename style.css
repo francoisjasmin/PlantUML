@@ -11,3 +11,10 @@ h3{padding:0 12px 8px}#preview{margin:0 12px 12px;min-height:380px;border:1px so
 .diagram{position:relative;min-width:700px;min-height:340px}.box{position:absolute;border:2px solid #4b5563;background:white;border-radius:5px;padding:10px;text-align:center;min-width:125px}.iface{border-radius:30px}.pkg{position:absolute;border:1px dashed #9ca3af;padding:6px;color:#6b7280}.mind{position:absolute;border:1px solid #64748b;background:white;border-radius:7px;padding:7px 10px}
 .box.note{background:#fff9c4;border-color:#a18a32;border-radius:0;text-align:left;white-space:normal}.box{overflow-wrap:anywhere}.pkg{border-radius:6px}.lines text{font:12px Segoe UI,Arial,sans-serif;paint-order:stroke;stroke:#fafafa;stroke-width:4px;fill:#374151}
 svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}footer{text-align:center;padding:0 15px 14px;color:#6b7280;font-size:12px}@media(max-width:900px){main{grid-template-columns:1fr}.editor{height:420px}}
+.diagram-title{position:absolute;top:10px;left:24px;right:24px;font-size:18px;font-weight:600;text-align:center}
+.box.entity{padding:0;border-radius:4px;text-align:left;font-size:14px;line-height:24px}
+.entity-name{padding:8px 12px;font-weight:700;text-align:center;border-bottom:1px solid currentColor;line-height:24px}
+.entity-attributes{padding:0 12px}.entity-attribute{min-height:24px;white-space:pre-wrap;overflow-wrap:anywhere}
+.entity-attribute.primary-key{font-weight:700}.entity-separator{height:12px;position:relative}
+.entity-separator::after{content:"";position:absolute;top:5px;left:-12px;right:-12px;border-top:1px solid currentColor}
+.er-diagram .note{font-size:14px;line-height:20px}.lines .er-cardinality{font-weight:700;font-size:13px}
