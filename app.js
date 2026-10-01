@@ -24,10 +24,12 @@ function validate(){
  type==="mind"?checkMind(L,e):type==="comp"&&checkComp(L,e); show(e,type,L)
 }
 function mindNode(s){
- let m=s.match(/^([*+#]+|[-]+)(?:_)?\s+(.+)$/);
+ // Read the whole prefix first so bare markers cannot become node text.
+ let m=s.match(/^\\?([*+#]+|[-]+)(?:\\?_)?/);
  if(!m)return null;
- let marks=m[1];
- return {depth:marks.length,text:m[2].trim(),side:marks[0]==="-"?"l":marks[0]==="+"?"r":null};
+ let marks=m[1],text=s.slice(m[0].length).trim();
+ if(!text)return null;
+ return {depth:marks.length,text,side:marks[0]==="-"?"l":marks[0]==="+"?"r":null};
 }
 function checkMind(L,e){
  let root=0,prev=0,seen=false;

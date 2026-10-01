@@ -62,6 +62,38 @@ for(const side of ['left','right','top','bottom'])assert.equal(parse(`component 
 for(const body of ['note right of A\ntext','package "G" {\n[A]','}','note nonsense','component [broken'])assert.ok(parse(body).errors.length>0,body);
 context.source='@startmindmap\n* Root\n** Child\n@endmindmap';
 vm.runInContext('code.value=source;validate()',context);assert.equal(elements.get('#status').textContent,'Syntaxe reconnue');
+// Spacing and escaped prefixes must produce the same hierarchy and preview.
+const mindPreviews=[];
+for(const body of [
+ '+_  Allo\n++ adroite\n-- agauche\n---plusagauche',
+ '+_Allo\n++adroite\n--agauche\n--- plusagauche',
+ String.raw`+\_  Allo
+++ adroite
+\-- agauche
+\---plusagauche`
+]){
+ context.source='@startmindmap\n'+body+'\n@endmindmap';
+ vm.runInContext('code.value=source;validate()',context);
+ assert.equal(elements.get('#status').textContent,'Syntaxe reconnue',body);
+ mindPreviews.push(elements.get('#preview').innerHTML);
+}
+assert.equal(mindPreviews[0],mindPreviews[1]);
+assert.equal(mindPreviews[0],mindPreviews[2]);
+for(const prefix of ['*','**','***','+_','++','---','##',String.raw`+\_`,String.raw`\--`]){
+ for(const gap of ['', ' ', '  ', '\t']){
+  context.nodeSource=prefix+gap+'Concept composé';
+  const node=vm.runInContext('mindNode(nodeSource)',context);
+  assert.equal(node.text,'Concept composé');
+ }
+ for(const suffix of ['', ' ', '\t']){
+  context.source='@startmindmap\n* Root\n'+prefix+suffix+'\n@endmindmap';
+  vm.runInContext('code.value=source;validate()',context);
+  assert.equal(elements.get('#status').className,'bad',prefix+suffix);
+ }
+}
+context.source='@startmindmap\n*Root\n***Child\n@endmindmap';
+vm.runInContext('code.value=source;validate()',context);
+assert.match(elements.get('#errors').innerHTML,/Niveau de MindMap sauté/);
 assert.doesNotMatch(fs.readFileSync('index.html','utf8'),/Exemple MindMap|Exemple composants/);
 assert.doesNotMatch(fs.readFileSync('index.html','utf8'),/placeholder=/);
 for(const arrow of ['-->','<--','<-->','..>','<..','<..>','-right->','<-left-','--','..']){

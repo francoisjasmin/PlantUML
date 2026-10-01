@@ -8,6 +8,8 @@ Aucune connexion Internet ni installation n'est requise.
 
 PORTÉE
 - MindMap : @startmindmap/@endmindmap, *, **, ***, +_, ++, +++, --, ---, left side/right side.
+  Le texte peut être collé au symbole ou séparé par des espaces (ex. ++Concept,
+  ++ Concept, ---plusagauche). Les préfixes échappés +\_ et \-- sont aussi acceptés.
 - Composants : @startuml/@enduml, [composant], component, alias avec as,
   interface et (), éléments implicites dans les relations, liens et flèches avec libellés.
 - Regroupements imbriqués : package, node, folder, frame, cloud, database, rectangle.
