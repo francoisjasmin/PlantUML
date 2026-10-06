@@ -11,7 +11,15 @@ const componentSource='@startuml\n'+Array.from({length:24},(_,i)=>`[Composant ${
 const entitySource='@startuml\n'+Array.from({length:8},(_,i)=>`entity E${i} {\n+type : ENUM(\'Créateur\', \'Participant\')\n}`).join('\n')+'\nE0 --> E7\n@enduml';
 const noteSource=fs.readFileSync('test-fixtures/notes.puml','utf8');
 const entityNoteSource=noteSource.replace('[Composant] as C','entity "Composant" as C {}').replace('[Autre composant] as D','entity "Autre composant" as D {}');
-const input=JSON.stringify({source,componentSource,entitySource,noteSource,entityNoteSource}).replace(/</g,'\\u003c');
+const titleSources=[
+ '@startuml\ntitle My Diagram Title\nAlice -> Bob: Hello\n@enduml',
+ '@startuml\ntitle\nFirst line of the title\nSecond line of the title\nend title\nAlice -> Bob: Hello\n@enduml',
+ noteSource.replace('@startuml','@startuml\ntitle\nNotes relatives\nSur plusieurs lignes\nend title'),
+ entityNoteSource.replace('@startuml','@startuml\ntitle\nEntités avec notes\nSur plusieurs lignes\nend title'),
+ source.replace('@startmindmap','@startmindmap\ntitle\nMindMap avec styles\nSur plusieurs lignes\nend title'),
+ '@startmindmap\ntitle\n'+Array.from({length:10},(_,i)=>'Ligne '+i+' : un titre très long avec des mots et des apostrophes pour vérifier le retour à la ligne.').join('\n')+'\nend title\n* Root\n** Child\n@endmindmap'
+];
+const input=JSON.stringify({source,componentSource,entitySource,noteSource,entityNoteSource,titleSources}).replace(/</g,'\\u003c');
 const script=`
 const inputs=${input};
 const reports=[];
@@ -24,9 +32,15 @@ function inspect(label){
  const top=bounds.top+preview.clientTop+parseFloat(css.paddingTop);
  const right=left+preview.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
  const bottom=top+preview.clientHeight-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom);
- for(const item of [stage,diagram,...diagram.querySelectorAll('.box,.mind,.pkg')]){
+ for(const item of [stage,diagram,...diagram.querySelectorAll('.box,.mind,.pkg,.diagram-title,svg.lines')]){
   const rect=item.getBoundingClientRect();
   requireTest(rect.left>=left-1&&rect.top>=top-1&&rect.right<=right+1&&rect.bottom<=bottom+1,label+': élément hors du cadre');
+ }
+ const heading=diagram.querySelector('.diagram-title');
+ if(heading){
+  const titleBounds=heading.getBoundingClientRect();
+  for(const box of diagram.querySelectorAll('.box,.mind,.pkg'))requireTest(box.getBoundingClientRect().top>titleBounds.bottom,label+': titre superposé au dessin');
+  requireTest(getComputedStyle(heading).textAlign==='center',label+': titre centré');
  }
  const scale=Number(diagram.style.transform.match(/scale\\(([^)]+)\\)/)[1]);
  requireTest(scale>0&&scale<=1,label+': échelle invalide');
@@ -85,6 +99,11 @@ async function run(){
   render('Petit diagramme','@startmindmap\\n* Racine\\n** Enfant\\n@endmindmap');
   requireTest(reports.at(-1).scale===1,'Un petit diagramme doit conserver sa taille');
   render('Nouveau grand diagramme',inputs.source);
+  for(const [index,source] of inputs.titleSources.entries()){
+   render('Titre '+index,source);
+   requireTest(preview.querySelector('.diagram-title'),'Titre absent');
+   if(source.includes('Note sans lien'))inspectNotes();
+  }
   code.value='@startmindmap\\n* Racine\\n*** Niveau sauté\\n@endmindmap';validate();
   requireTest(status.className==='bad'&&!preview.querySelector('.diagram'),'Erreur après aperçu');
   document.querySelector('#clear').click();

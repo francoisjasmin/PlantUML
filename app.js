@@ -22,12 +22,18 @@ function clean(s){
  return s.trim();
 }
 function sourceLines(source){
- let inNote=false,inMind=false;
+ let inNote=false,inMind=false,inTitle=false,inStyle=false,inBody=false;
  return source.replace(/\r/g,'').split('\n').map((raw,i)=>{
   if(/^@startmindmap\s*$/i.test(raw.trim()))inMind=true;
-  const literal=inNote||(inMind&&!!mindNode(raw.trim()))||/^note\s+(?:left|right|top|bottom)\s+of\s+(?:"[^"]+"|\[[^\]]+\]|[\w.]+)\s*:/i.test(raw.trim());
+  const literal=inNote||inTitle||(!inStyle&&!inBody&&/^title\s+/i.test(raw.trim()))||(inMind&&!!mindNode(raw.trim()))||/^note\s+(?:left|right|top|bottom)\s+of\s+(?:"[^"]+"|\[[^\]]+\]|[\w.]+)\s*:/i.test(raw.trim());
   const s=literal?raw.trim():clean(raw);
-  if(/^end\s*note$/i.test(clean(raw)))inNote=false;
+  if(inTitle){if(/^end\s+title$/i.test(clean(raw)))inTitle=false}
+  else if(inNote){if(/^end\s*note$/i.test(clean(raw)))inNote=false}
+  else if(inStyle){if(/^<\/style>$/i.test(s))inStyle=false}
+  else if(inBody){if(s==='}')inBody=false}
+  else if(/^title$/i.test(s))inTitle=true;
+  else if(/^<style>$/i.test(s))inStyle=true;
+  else if(/^(?:entity\s+.+|skinparam\s+\w+)\s*\{$/i.test(s))inBody=true;
   else if(/^note\s+(?:(?:left|right|top|bottom)\s+of\s+(?:"[^"]+"|\[[^\]]+\]|[\w.]+)|as\s+[\w.]+)$/i.test(s))inNote=true;
   return {n:i+1,s,raw,literal};
  }).filter(x=>x.s||x.literal);
@@ -71,6 +77,31 @@ function extractStyles(L,e=[]){
  if(block){E(e,block.n,'Bloc <style> non terminé par « </style> ».');readBlock()}
  return {lines,rules};
 }
+function extractTitle(L,e=[]){
+ const lines=[];let title='',block=null,body=null;
+ for(const x of L){
+  const s=x.s;
+  if(block){
+   if(/^end\s+title$/i.test(clean(s))){title=block.text.join('\n');block=null}
+   else if(/^@end(?:uml|mindmap)$/i.test(s)){E(e,block.n,'Bloc title non terminé par « end title ».');block=null;lines.push(x)}
+   else block.text.push((x.raw??s).trim());
+   continue;
+  }
+  if(body){
+   lines.push(x);
+   if(body==='note'?/^end\s*note$/i.test(clean(s)):s==='}')body=null;
+   continue;
+  }
+  const m=s.match(/^title(?:\s+(.+))?$/i);
+  if(m){if(m[1]!==undefined)title=m[1];else block={n:x.n,text:[]};continue}
+  if(/^end\s+title$/i.test(s)){E(e,x.n,'« end title » sans bloc title ouvert.');continue}
+  lines.push(x);
+  if(/^note\s+(?:(?:left|right|top|bottom)\s+of\s+(?:"[^"]+"|\[[^\]]+\]|[\w.]+)|as\s+[\w.]+)$/i.test(s))body='note';
+  else if(/^(?:entity\s+.+|skinparam\s+\w+)\s*\{$/i.test(s))body='brace';
+ }
+ if(block)E(e,block.n,'Bloc title non terminé par « end title ».');
+ return {lines,title};
+}
 function validate(){
  let L=sourceLines(code.value), e=[], type="";
  if(!L.length){show([{n:1,m:"Le diagramme est vide."}],"");return}
@@ -91,7 +122,7 @@ function mindNode(s){
  return {depth:marks.length,text,stereotypes,side:marks[0]==="-"?"l":marks[0]==="+"?"r":null};
 }
 function checkMind(L,e){
- L=extractStyles(L,e).lines;
+ L=extractTitle(extractStyles(L,e).lines,e).lines;
  let root=0,prev=0,seen=false;
  L.slice(1,-1).forEach(x=>{let s=x.s;if(/^(left|right) side$/i.test(s)||/^skinparam\b/i.test(s))return;
   let m=mindNode(s);if(!m){E(e,x.n,"Instruction MindMap non reconnue.");return}
@@ -103,9 +134,9 @@ const compName = String.raw`(?:"[^"\n]+"|\[[^\]\n]+\]|[A-Za-z_][\w.]*)`;
 const compAlias = String.raw`(?:\s+as\s+([A-Za-z_][\w.]*))?`;
 const unquote = s => /^["\[]/.test(s) ? s.slice(1,-1) : s;
 function parseComp(L,e=[]){
- const styled=extractStyles(L,e);L=styled.lines;
+ const styled=extractStyles(L,e),titled=extractTitle(styled.lines,e);L=titled.lines;
  const nodes=[],groups=[],relations=[],stack=[],refs=new Map();
- let note=null,entity=null,skin=null,title='';
+ let note=null,entity=null,skin=null,title=titled.title;
  const entityStyle={backgroundcolor:'#D6EAF8',bordercolor:'#1F618D',fontcolor:'black'};
  function setEntityStyle(key,value,n){
   key=key.toLowerCase();
@@ -149,8 +180,6 @@ function parseComp(L,e=[]){
   if(m){skin={kind:m[1].toLowerCase(),n:x.n};continue}
   m=s.match(/^skinparam\s+entity(BackgroundColor|BorderColor|FontColor)\s+(.+)$/i);
   if(m){setEntityStyle(m[1],m[2],x.n);continue}
-  m=s.match(/^title\s+(.+)$/i);
-  if(m){title=m[1];continue}
   if(/^(skinparam|caption)\b/i.test(s))continue;
   m=s.match(new RegExp(`^entity\\s+(${compName})${compAlias}\\s*(\\{\\s*(\\})?)?$`,'i'));
   if(m){const node=declare(m[1],m[2],'entity');node.attributes=[];if(m[3]&&!m[4])entity={node,n:x.n};continue}
@@ -210,8 +239,20 @@ function fitPreview(){
  diagram.style.transform=`scale(${scale})`;
  stage.style.width=width*scale+'px';stage.style.height=height*scale+'px';
 }
-function renderPreview(markup){
- preview.innerHTML=`<div class="preview-stage">${markup}</div>`;fitPreview();
+function renderPreview(markup,title=''){
+ if(title)markup=markup.replace(/^(<div\b[^>]*>)/,opening=>opening+`<div class="diagram-title">${html(title).replace(/\\n|\n/g,'<br>')}</div>`);
+ preview.innerHTML=`<div class="preview-stage">${markup}</div>`;
+ if(title&&typeof preview.querySelector==='function'){
+  const diagram=preview.querySelector('.diagram'),heading=diagram.querySelector('.diagram-title');
+  const height=diagram.offsetHeight,reserve=heading.offsetHeight+30;
+  // Shift the entire drawing beneath the measured heading, including its connections.
+  Array.from(diagram.children).filter(child=>child!==heading).forEach(child=>{
+   if(child.tagName.toLowerCase()==='svg'){child.style.top=reserve+'px';child.style.bottom='auto';child.style.height=height+'px'}
+   else child.style.top=(parseFloat(child.style.top)||0)+reserve+'px';
+  });
+  diagram.style.height=height+reserve+'px';
+ }
+ fitPreview();
 }
 if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitPreview).observe(preview);
 else if(typeof window!=='undefined')window.addEventListener('resize',fitPreview);
@@ -227,7 +268,7 @@ function mindStyle(rules,node){
  return style;
 }
 function layoutMind(L){
- const {lines,rules}=extractStyles(L),nodes=[],parents={l:{},r:{}};let side='r';
+ const styled=extractStyles(L),{lines,title}=extractTitle(styled.lines),rules=styled.rules,nodes=[],parents={l:{},r:{}};let side='r';
  const probe=typeof document.createElement==='function'?document.createElement('div'):null;
  if(probe){probe.className='mind';preview.appendChild(probe)}
  lines.slice(1,-1).forEach(x=>{
@@ -255,7 +296,7 @@ function layoutMind(L){
  });
  if(probe)probe.remove();
  const root=nodes.find(n=>n.d===1);
- if(!root)return {nodes:[],width:700,height:340};
+ if(!root)return {nodes:[],width:700,height:340,title};
  const gap=n=>Math.max(12,n.style.margin*2);
  const listHeight=list=>list.reduce((sum,n,i)=>sum+n.subtree+(i?gap(n):0),0);
  function measure(n){n.children.forEach(measure);n.subtree=Math.max(n.h,listHeight(n.children))}
@@ -278,10 +319,10 @@ function layoutMind(L){
   let y=(height-listHeight(branches[s]))/2;
   branches[s].forEach((n,i)=>{if(i)y+=gap(n);place(n,y);y+=n.subtree});
  }
- return {nodes,width,height};
+ return {nodes,width,height,title};
 }
 function drawMind(L){
- const {nodes,width,height}=layoutMind(L);
+ const {nodes,width,height,title}=layoutMind(L);
  const lines=nodes.filter(n=>nodes[n.p]).map(n=>{
   const p=nodes[n.p],left=n.side==='l';
   return `<line x1="${p.x+(left?0:p.w)}" y1="${p.y+p.h/2}" x2="${n.x+(left?n.w:0)}" y2="${n.y+n.h/2}" stroke="#64748b"/>`;
@@ -290,7 +331,7 @@ function drawMind(L){
   const s=n.style;
   return `<div class="mind" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;min-height:${n.h}px;padding:${s.padding}px;text-align:${s.horizontalalignment};background-color:${s.backgroundcolor};border-color:${s.linecolor};color:${s.fontcolor};font-size:${s.fontsize}px;line-height:${s.fontsize*1.4}px">${html(n.t).replace(/\\n|\n/g,'<br>')}</div>`;
  }).join('');
- renderPreview(`<div class="diagram mind-diagram" style="width:${width}px;height:${height}px"><svg class="lines">${lines}</svg>${boxes}</div>`);
+ renderPreview(`<div class="diagram mind-diagram" style="width:${width}px;height:${height}px"><svg class="lines">${lines}</svg>${boxes}</div>`,title);
 }
 function sizeNote(n){
  n.w=250;
@@ -383,7 +424,7 @@ function drawComp(L){
  }).join('');
  const boxes=nodes.map(n=>`<div class="box ${n.k==='interface'?'iface':n.k==='note'?'note':''}" style="left:${n.x}px;top:${n.y}px;width:${n.w}px;min-height:${n.h}px">${n.k==='database'?'DB: ':''}${display(n.t)}</div>`).join('');
  const width=Math.max(740,...groups.map(g=>g.x+g.w+20),...nodes.map(n=>n.x+190));
- renderPreview(`<div class="diagram" style="height:${Math.max(340,cursor)}px;min-width:${width}px">${groupBoxes}<svg class="lines"><defs><marker id="arrowEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10" fill="#4b5563"/></marker><marker id="arrowStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 10 0 L 0 5 L 10 10" fill="#4b5563"/></marker></defs>${lines}</svg>${boxes}</div>`);
+ renderPreview(`<div class="diagram" style="height:${Math.max(340,cursor)}px;min-width:${width}px">${groupBoxes}<svg class="lines"><defs><marker id="arrowEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10" fill="#4b5563"/></marker><marker id="arrowStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 10 0 L 0 5 L 10 10" fill="#4b5563"/></marker></defs>${lines}</svg>${boxes}</div>`,model.title);
 }
 function drawEntities({nodes,groups=[],relations,title,entityStyle}){
  // ER layout is flat; linked groups still need a visible box and connection ports.
@@ -395,7 +436,7 @@ function drawEntities({nodes,groups=[],relations,title,entityStyle}){
  const noteWidth=250,noteGap=24,laneGap=72;
  const boxWidth=Math.max(280,Math.min(640,Math.max(...main.map(n=>Math.max(n.t.length,...(n.attributes||[]).filter(a=>!a.separator).map(a=>a.text.length))))*8+28));
  const boxX=noteWidth+80+Math.max(1,links.length)*laneGap;
- let cursor=title?80:30;
+ let cursor=30;
  function noteHeight(n){return 24+n.t.split(/\\n|\n/).reduce((sum,line)=>sum+Math.max(1,Math.ceil(line.length/29)),0)*20}
  const sumHeight=list=>list.reduce((sum,n)=>sum+n.h+noteGap,0);
  main.forEach(n=>{
@@ -447,6 +488,6 @@ function drawEntities({nodes,groups=[],relations,title,entityStyle}){
   return `<div class="box entity" style="${position};background-color:${entityStyle.backgroundcolor};border-color:${entityStyle.bordercolor};color:${entityStyle.fontcolor}"><div class="entity-name">${display(n.t)}</div><div class="entity-attributes">${rows}</div></div>`;
  }).join('');
  const width=Math.max(boxX+boxWidth+30,...nodes.map(n=>n.x+n.w+30));
- renderPreview(`<div class="diagram er-diagram" style="height:${Math.max(340,cursor)}px;min-width:${width}px">${title?`<div class="diagram-title">${display(title)}</div>`:''}<svg class="lines"><defs><marker id="erArrowEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10" fill="#4b5563"/></marker><marker id="erArrowStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 10 0 L 0 5 L 10 10" fill="#4b5563"/></marker></defs>${paths}${notePaths}</svg>${boxes}</div>`);
+ renderPreview(`<div class="diagram er-diagram" style="height:${Math.max(340,cursor)}px;min-width:${width}px"><svg class="lines"><defs><marker id="erArrowEnd" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10" fill="#4b5563"/></marker><marker id="erArrowStart" viewBox="0 0 10 10" refX="0" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 10 0 L 0 5 L 10 10" fill="#4b5563"/></marker></defs>${paths}${notePaths}</svg>${boxes}</div>`,title);
 }
 number();

@@ -20,6 +20,10 @@ PORTÉE
   entity sont aussi appliquées aux entités. Les blocs doivent être fermés.
 - Composants : @startuml/@enduml, [composant], component, alias avec as,
   interface et (), éléments implicites dans les relations, liens et flèches avec libellés.
+- Titres : title Mon titre sur une ligne, ou un bloc title suivi du texte
+  sur plusieurs lignes et terminé par end title. Les retours à la ligne \n sont
+  aussi acceptés dans un titre sur une ligne. Les titres sont affichés au-dessus
+  des composants, des entités et des MindMaps, sans chevaucher le dessin.
 - Regroupements imbriqués : package, node, folder, frame, cloud, database, rectangle.
   Les groupes nommés peuvent être utilisés dans les liens par leur nom ou leur alias
   (ex. node Other { ... } puis Other --> [Exemple], ou package "Mon groupe" as G).

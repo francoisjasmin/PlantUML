@@ -491,3 +491,74 @@ for(const kind of ['component','entity'])for(const side of ['left','right','top'
 result=validateSource('@startuml\ncomponent A\ncomponent B\nnote left of A, B : Deux objets\n@enduml');
 assert.ok(result.errors.length>0);
 console.log('Notes on all four sides, standalone notes, links, forward aliases, groups, apostrophes and blank paragraphs: OK');
+
+const titleExamples=[
+ {directive:'title My Diagram Title',title:'My Diagram Title'},
+ {directive:'title\nFirst line of the title\nSecond line of the title\nend title',title:'First line of the title\nSecond line of the title'},
+ {directive:String.raw`title First line\nSecond line`,title:String.raw`First line\nSecond line`},
+ {directive:"title L'objet et l'utilisateur",title:"L'objet et l'utilisateur"},
+ {directive:"TITLE\nL'objet\n\nDeuxième paragraphe\nEND TITLE",title:"L'objet\n\nDeuxième paragraphe"}
+];
+for(const example of titleExamples){
+ for(const body of ['Alice -> Bob: Hello','[A] --> [B]','entity A {}\nentity B {}\nA --> B']){
+  result=validateSource('@startuml\n'+example.directive+'\n'+body+'\n@enduml');
+  assert.equal(result.errors.length,0,example.directive);
+  assert.equal(elements.get('#status').textContent,'Syntaxe reconnue');
+  assert.equal(result.model.title,example.title);
+  assert.equal(result.model.nodes.length,2);
+  output=elements.get('#preview').innerHTML;
+  assert.ok(output.includes(`<div class="diagram-title">${example.title.replace(/\\n|\n/g,'<br>')}</div>`));
+  assert.doesNotMatch(output,/NaN|undefined|Infinity/);
+ }
+ result=validateMindSource('@startmindmap\n'+example.directive+'\n* Root\n** Child\n@endmindmap');
+ assert.equal(result.errors.length,0);
+ assert.equal(result.model.title,example.title);
+ assert.equal(result.model.nodes.length,2);
+ assert.match(elements.get('#preview').innerHTML,/class="diagram-title"/);
+}
+result=validateSource(`@startuml
+<style>
+title
+{
+ FontSize 24
+}
+</style>
+title
+Title with literal content
+<style>
+note as N
+end note
+</style>
+<img src=x onerror=alert(1)>
+end title
+entity A {
+ title
+ +title : VARCHAR(50)
+}
+note right of A
+title
+Text inside a note
+end title
+end note
+@enduml`);
+assert.equal(result.errors.length,0);
+assert.equal(result.model.title,'Title with literal content\n<style>\nnote as N\nend note\n</style>\n<img src=x onerror=alert(1)>');
+assert.equal(result.model.nodes.filter(n=>n.k==='note').length,1);
+assert.equal(result.model.nodes.find(n=>n.id==='A').attributes.length,2);
+assert.equal(result.model.nodes.find(n=>n.k==='note').t,'title\nText inside a note\nend title');
+assert.doesNotMatch(elements.get('#preview').innerHTML,/<style>|<img|onerror="/);
+assert.match(elements.get('#preview').innerHTML,/&lt;img src=x onerror=alert\(1\)&gt;/);
+for(const [body,line,message] of [
+ ['title\nMissing closing keyword\n[A]',2,'Bloc title non terminé'],
+ ['end title\n[A]',2,'sans bloc title'],
+ ['title\nWrong terminator\nendilingual\n[A]',2,'Bloc title non terminé']
+]){
+ result=validateSource('@startuml\n'+body+'\n@enduml');
+ assert.ok(result.errors.some(e=>e.n===line&&e.m.includes(message)));
+ assert.equal(elements.get('#status').className,'bad');
+ assert.doesNotMatch(elements.get('#preview').innerHTML,/class="diagram/);
+ result=validateMindSource('@startmindmap\n'+body.replace('[A]','* Root')+'\n@endmindmap');
+ assert.ok(result.errors.some(e=>e.n===line&&e.m.includes(message)));
+ assert.equal(elements.get('#status').className,'bad');
+}
+console.log('Single-line and multiline titles, escaped newlines, MindMap titles, literal content and invalid title blocks: OK');
