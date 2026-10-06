@@ -1,0 +1,32 @@
+@startuml
+package "Groupe" as G {
+  note top of C : Note en haut
+  [Composant] as C
+  [Autre composant] as D
+  note left of C
+  Note à gauche
+  L'objet est décrit sur plusieurs lignes.
+  end note
+  note left of C : Deuxième note à gauche
+  note right of C : Note à droite de l'objet
+  note bottom of C
+  Note en bas
+  Une autre ligne
+  end note
+
+  note "Note autonome\nsur deux lignes" as N
+  note as N2
+  Note autonome en bloc
+
+  L'objet conserve ses apostrophes.
+  <style>
+  Texte de la note
+  </style>
+  end note
+  note "Note sans lien" as N3
+  C .. N
+  N .. D
+  N2 --> C
+}
+note right of G : Note du groupe
+@enduml

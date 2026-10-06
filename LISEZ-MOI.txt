@@ -10,25 +10,48 @@ PORTÉE
 - MindMap : @startmindmap/@endmindmap, *, **, ***, +_, ++, +++, --, ---, left side/right side.
   Le texte peut être collé au symbole ou séparé par des espaces (ex. ++Concept,
   ++ Concept, ---plusagauche). Les préfixes échappés +\_ et \-- sont aussi acceptés.
+  Les apostrophes dans les libellés sont conservées. Les liens [[URL Libellé]]
+  affichent leur libellé et les catégories <<concept>> peuvent colorer les nœuds.
+- Styles : blocs <style> ... </style>, sélecteur node et catégories de mindmapDiagram
+  (ex. .concept { BackgroundColor #FFBBCC }). L’aperçu MindMap applique Padding,
+  Margin, HorizontalAlignment, MaximumWidth, BackgroundColor, LineColor, FontColor
+  et FontSize. Les autres propriétés sont acceptées mais ne sont pas appliquées.
+  Les couleurs BackgroundColor, LineColor/BorderColor et FontColor du sélecteur
+  entity sont aussi appliquées aux entités. Les blocs doivent être fermés.
 - Composants : @startuml/@enduml, [composant], component, alias avec as,
   interface et (), éléments implicites dans les relations, liens et flèches avec libellés.
 - Regroupements imbriqués : package, node, folder, frame, cloud, database, rectangle.
+  Les groupes nommés peuvent être utilisés dans les liens par leur nom ou leur alias
+  (ex. node Other { ... } puis Other --> [Exemple], ou package "Mon groupe" as G).
 - Entité-relation : entity "Nom" as Alias { ... }, attributs (ex. +Id : int [PK]),
+  enums avec apostrophes ou guillemets (ex. ENUM('Créateur', 'Participant') ou
+  ENUM("Créateur", "Participant")), commentaires après les attributs,
   clés [PK]/[FK], séparateurs --, .., == ou __, relations avec cardinalités
   (ex. Cours "1" -- "0..*" TacheDevoir : contient >). La forme 0..\* est aussi acceptée.
   Le titre et les couleurs BackgroundColor, BorderColor et FontColor d’un bloc
   skinparam entity sont affichés dans l’aperçu. Couleurs : nom simple ou hexadécimal.
-- Notes : left/right/top/bottom of, texte sur une ligne ou bloc end note,
-  notes autonomes avec alias et liens pointillés. Paramètres skinparam.
+- Notes : note left of, note right of, note top of et note bottom of ciblent
+  un seul objet par son nom ou alias, avec du texte après « : » ou un bloc end note.
+  L’aperçu place la note du côté demandé, y compris pour les groupes nommés.
+  Notes autonomes : note "Texte" as N, ou note as N suivi du texte et de end note.
+  Elles peuvent rester sans lien ou être reliées à des objets (ex. C .. N, N --> D).
+  Les apostrophes et les lignes vides sont conservées. Paramètres skinparam.
 - L’aperçu affiche les groupes, notes et liens dans une disposition simplifiée ;
-  le placement exact des notes et des flèches n’est pas celui du moteur PlantUML.
+  tous les diagrammes sont réduits automatiquement en largeur et en hauteur
+  pour tenir dans le cadre, y compris lors du redimensionnement de la fenêtre.
+  Le placement exact des notes et des flèches n’est pas celui du moteur PlantUML.
   L’aperçu ER présente les entités avec leurs attributs et cardinalités, et place
   les notes du côté demandé. Les entités sont disposées verticalement ; les
-  regroupements ne sont pas représentés dans cet aperçu ER. Les autres options
+  groupes utilisés dans les liens sont affichés sous forme de boîtes simples,
+  sans représenter l’imbrication des regroupements dans cet aperçu ER. Les autres options
   skinparam ne sont pas appliquées. La notation patte d’oie n’est pas prise en charge.
 
 VÉRIFICATION (développement, Node.js uniquement)
 Exécuter : node test.js
+Pour vérifier le rendu réel sur ordinateur et mobile : node test-browser.js
+Ce second test nécessite Node.js 22 ou plus et Chrome ou Edge. Sous Windows,
+le navigateur est détecté automatiquement ; sinon définir PLANTUML_TEST_BROWSER
+avec son chemin. Aucune dépendance npm ni connexion Internet n’est requise.
 
 IMPORTANT
 Ce n'est pas le moteur officiel PlantUML. Le programme vérifie la syntaxe ciblée

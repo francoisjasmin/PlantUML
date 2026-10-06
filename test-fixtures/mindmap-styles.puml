@@ -1,0 +1,79 @@
+@startmindmap
+<style>
+node {
+    Padding 12
+    Margin 3
+    HorizontalAlignment center
+    MaximumWidth 150
+}
+mindmapDiagram {
+  .autre-app {
+    BackgroundColor yellow
+  }
+  .legal {
+    BackgroundColor lightblue
+  }
+  .tangible {
+    BackgroundColor violet
+  }
+ .concept {
+    BackgroundColor #FFBBCC
+  }
+}
+</style>
+
++_ Puzzler
+++ Jeu <<concept>>
++++ Démarrage <<concept>>
++++ Résolution <<concept>>
++++ Gestion de la partie <<concept>>
+++ Jigsaw Puzzle <<tangible>>
++++ [[https://jigsawpuzzleguru.com/types-of-jigsaw-puzzles-8-different-variations/ Type]] <<concept>>
+++++ Formes <<concept>>
+++++ Cadres <<concept>>
+++++ Thèmes <<concept>>
++++ Pièces <<tangible>>
+++++ Formes <<tangible>>
+++++ Nombres <<tangible>>
+++ [[https://www.youtube.com/watch?v=vXWvptwoCl8 Calcul de surface?]] <<concept>>
+++ Photo de vacances <<tangible>>
++++ Compression <<autre-app>>
++++ Exif <<autre-app>>
+++ Vidéos <<tangible>>
++++ Métadonnées <<autre-app>>
+-- Partage  <<concept>>
+--- Protocole de partage (Envoi) <<autre-app>>
+---- OpenGraph <<autre-app>>
+---- Courriel (sendgrid?) <<autre-app>>
+--- Visibilité  <<concept>>
+---- Options de confidentialité (Privé, Famille)  <<concept>>
+---- Modification de la visibilité  <<concept>>
+--- Réception <<autre-app>>
+-- règlements <<legal>>
+--- Vie privé <<legal>>
+--- Règlements des magasins d'app. <<legal>>
+---- PlayStore <<autre-app>>
+---- Apple Store <<autre-app>>
+---- Microsoft Store <<autre-app>>
+-- Sécurité  <<concept>>
+--- Accès <<concept>>
+---- Auhtentification <<autre-app>>
+---- Gestion des mots de passe <<autre-app>>
+--- Protection des données <<concept>>
+---- Cryptage des informations <<autre-app>>
+---- Protection contre le spam (privé, public) <<autre-app>>
+--- Sécurité du contenu <<concept>>
+---- Filtrage des images <<autre-app>>
+---- Contrôle d'accès (privé, public) <<concept>>
+--- Pare-feu <<autre-app>>
+--- Modération  <<concept>>
+---- Banissement (ip/conrriel)  <<concept>>
+---- Retrait de contenu  <<concept>>
+---- Modification de contenu  <<concept>>
+-- Communauté <<concept>>
+--- Inscription <<concept>>
+--- Interaction <<concept>>
+--- Modération <<concept>>
+---- Signalement d’abus <<autre-app>>
+
+@endmindmap
